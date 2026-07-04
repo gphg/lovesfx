@@ -27,6 +27,10 @@ LICENSE=${LICENSE:-"Public Domain"}
 # Detect OS
 SYSTEM="$(uname -s)"
 
+# Cache directory for downloads
+CACHE_DIR="cache"
+mkdir -p "$CACHE_DIR"
+
 # Download links
 if [ "$SYSTEM" = "Linux" ]; then
     LINK_7z="https://github.com/ip7z/7zip/releases/download/26.02/7z2602-linux-x64.tar.xz"
@@ -50,15 +54,15 @@ download() {
     fi
 }
 
-# File paths
-EXE_7zr="$(basename "$LINK_7zr")"
-EXE_wine="$(basename "$LINK_wine")"
-ARCHIVE_7z="$(basename "$LINK_7z")"
-ARCHIVE_love="$(basename "$LINK_love")"
-ARCHIVE_sfx="$(basename "$LINK_sfx")"
+# File paths (in cache directory)
+EXE_7zr="$CACHE_DIR/$(basename "$LINK_7zr")"
+EXE_wine="$CACHE_DIR/$(basename "$LINK_wine")"
+ARCHIVE_7z="$CACHE_DIR/$(basename "$LINK_7z")"
+ARCHIVE_love="$CACHE_DIR/$(basename "$LINK_love")"
+ARCHIVE_sfx="$CACHE_DIR/$(basename "$LINK_sfx")"
 FILE_icon="icon.png"
-ARCHIVE_magick="$(basename "$LINK_magick")"
-FILE_rcedit="$(basename "$LINK_rcedit")"
+ARCHIVE_magick="$CACHE_DIR/$(basename "$LINK_magick")"
+FILE_rcedit="$CACHE_DIR/$(basename "$LINK_rcedit")"
 EXCLUDE_FILE="exclude.txt"
 
 if [ "$SYSTEM" != "Linux" ]; then
@@ -74,16 +78,16 @@ download "$LINK_magick" "$ARCHIVE_magick"
 download "$LINK_rcedit" "$FILE_rcedit"
 
 # Unpacked paths
-DIR_7z="${ARCHIVE_7z%%.*}"
+DIR_7z="$CACHE_DIR/7z"
 if [ "$SYSTEM" = "Linux" ]; then
     EXE_7z="$DIR_7z/7zz"
 else
     EXE_7z="$DIR_7z/x64/7za.exe"
 fi
-DIR_love="${ARCHIVE_love%.*}"
+DIR_love="$CACHE_DIR/love"
 DIR_game="."
-DIR_sfx="${ARCHIVE_sfx%.*}"
-DIR_magick="imagemagick"
+DIR_sfx="$CACHE_DIR/7zsfx"
+DIR_magick="$CACHE_DIR/imagemagick"
 FILE_sfx="7zsd_All_x64.sfx"
 
 # Setup magick and rcedit paths based on OS
@@ -91,7 +95,7 @@ if [ "$SYSTEM" = "Linux" ]; then
     EXE_magick="$ARCHIVE_magick"
     EXE_rcedit="$EXE_wine $FILE_rcedit"
 else
-    # On Windows, extract to imagemagick subdirectory to contain files
+    # On Windows, extract to cache subdirectory to contain files
     EXE_magick="$DIR_magick/magick.exe"
     EXE_rcedit="$FILE_rcedit"
 fi
@@ -124,13 +128,13 @@ unpack_7z() {
 }
 
 unpack_7z "$ARCHIVE_7z" "$DIR_7z"
-unpack_7z "$ARCHIVE_love"
+unpack_7z "$ARCHIVE_love" "$DIR_love"
 unpack_7z "$ARCHIVE_sfx" "$DIR_sfx"
 if [ "$SYSTEM" = "Linux" ]; then
     chmod +x "$EXE_magick"
     chmod +x "$EXE_wine"
 else
-    # Always extract ImageMagick to imagemagick subdirectory
+    # Always extract ImageMagick to cache subdirectory
     unpack_7z "$ARCHIVE_magick" "$DIR_magick"
 fi
 
