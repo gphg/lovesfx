@@ -83,6 +83,7 @@ fi
 DIR_love="${ARCHIVE_love%.*}"
 DIR_game="."
 DIR_sfx="${ARCHIVE_sfx%.*}"
+DIR_magick="imagemagick"
 FILE_sfx="7zsd_All_x64.sfx"
 
 # Setup magick and rcedit paths based on OS
@@ -90,8 +91,8 @@ if [ "$SYSTEM" = "Linux" ]; then
     EXE_magick="$ARCHIVE_magick"
     EXE_rcedit="$EXE_wine $FILE_rcedit"
 else
-    # On Windows, 7z extracts ImageMagick files to root, not to a subdirectory
-    EXE_magick="magick.exe"
+    # On Windows, extract to imagemagick subdirectory to contain files
+    EXE_magick="$DIR_magick/magick.exe"
     EXE_rcedit="$FILE_rcedit"
 fi
 
@@ -115,7 +116,7 @@ unpack_7z() {
         fi
     else
         if [ ! -d "$2" ]; then
-            echo "Unpacking $1"
+            echo "Unpacking $1 to $2"
             mkdir -p "$2"
             $UNARCH "$1" "$TARGETDIR$2"
         fi
@@ -129,7 +130,8 @@ if [ "$SYSTEM" = "Linux" ]; then
     chmod +x "$EXE_magick"
     chmod +x "$EXE_wine"
 else
-    unpack_7z "$ARCHIVE_magick"
+    # Always extract ImageMagick to imagemagick subdirectory
+    unpack_7z "$ARCHIVE_magick" "$DIR_magick"
 fi
 
 # Icon settings
@@ -215,5 +217,5 @@ echo "Build complete: $SFX_game"
 
 # Clean up
 #rm -f "$EXE_7zr" "$EXE_wine" "$ARCHIVE_7z" "$ARCHIVE_love" "$ARCHIVE_sfx" "$ARCHIVE_magick" "$FILE_icon" "$FILE_rcedit"
-#rm -rf "$DIR_7z" "$DIR_love" "$DIR_sfx"
+#rm -rf "$DIR_7z" "$DIR_love" "$DIR_sfx" "$DIR_magick"
 #rm -f "$FILE_ico" "$FILE_sfx" "$CONFIG_file" "$ARCHIVE_packed"
