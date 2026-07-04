@@ -29,24 +29,19 @@ SYSTEM="$(uname -s)"
 
 # Download links
 if [ "$SYSTEM" = "Linux" ]; then
-    LINK_7z="https://7-zip.org/a/7z2407-linux-x64.tar.xz"
-    LINK_magick="https://imagemagick.org/archive/binaries/magick"
-    LINK_wine="https://github.com/mmtrt/WINE_AppImage/releases/download/staging-v8/wine-staging_8.21-x86_64.AppImage"
+    LINK_7z="https://github.com/ip7z/7zip/releases/download/26.02/7z2602-linux-x64.tar.xz"
+    LINK_magick="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-26/ImageMagick-7.1.2-26-gcc-x86_64.AppImage"
+    LINK_wine="https://github.com/mmtrt/WINE_AppImage/releases/download/continuous-stable/wine-stable_11.0-x86_64.AppImage"
 else
-    LINK_7zr="https://7-zip.org/a/7zr.exe"
-    LINK_7z="https://7-zip.org/a/7z2407-extra.7z"
-    LINK_magick="https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-35-portable-Q16-HDRI-x64.zip"
+    LINK_7zr="https://github.com/ip7z/7zip/releases/download/26.02/7zr.exe"
+    LINK_7z="https://github.com/ip7z/7zip/releases/download/26.02/7z2602-extra.7z"
+    LINK_magick="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-26/ImageMagick-7.1.2-26-portable-Q16-HDRI-x64.7z"
 fi
 
 LINK_love="https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip"
-LINK_game="https://github.com/santoslove/particle-system-playground/archive/refs/heads/master.zip"
 LINK_icon="https://upload.wikimedia.org/wikipedia/commons/6/6f/Softies-icons-star_256px.png"
 LINK_rcedit="https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe"
 LINK_sfx="https://github.com/chrislake/7zsfxmm/releases/download/1.7.1.3901/7zsd_extra_171_3901.7z"
-
-get_remote_filename() {
-    curl -LsI "$1" | grep -i content-disposition | sed -n 's/.*filename=*\([^;]*\).*/\1/p' | tr -d '\r'
-}
 
 download() {
     if [ ! -f "$2" ]; then
@@ -60,11 +55,11 @@ EXE_7zr="$(basename "$LINK_7zr")"
 EXE_wine="$(basename "$LINK_wine")"
 ARCHIVE_7z="$(basename "$LINK_7z")"
 ARCHIVE_love="$(basename "$LINK_love")"
-ARCHIVE_game="$(get_remote_filename "$LINK_game")"
 ARCHIVE_sfx="$(basename "$LINK_sfx")"
 FILE_icon="icon.png"
 ARCHIVE_magick="$(basename "$LINK_magick")"
 FILE_rcedit="$(basename "$LINK_rcedit")"
+EXCLUDE_FILE="exclude.txt"
 
 if [ "$SYSTEM" != "Linux" ]; then
     download "$LINK_7zr" "$EXE_7zr"
@@ -73,7 +68,6 @@ else
 fi
 download "$LINK_7z" "$ARCHIVE_7z"
 download "$LINK_love" "$ARCHIVE_love"
-download "$LINK_game" "$ARCHIVE_game"
 download "$LINK_sfx" "$ARCHIVE_sfx"
 download "$LINK_icon" "$FILE_icon"
 download "$LINK_magick" "$ARCHIVE_magick"
@@ -87,7 +81,7 @@ else
     EXE_7z="$DIR_7z/x64/7za.exe"
 fi
 DIR_love="${ARCHIVE_love%.*}"
-DIR_game="${ARCHIVE_game%.*}"
+DIR_game="."
 DIR_sfx="${ARCHIVE_sfx%.*}"
 FILE_sfx="7zsd_All_x64.sfx"
 if [ "$SYSTEM" = "Linux" ]; then
@@ -128,7 +122,6 @@ unpack_7z() {
 
 unpack_7z "$ARCHIVE_7z" "$DIR_7z"
 unpack_7z "$ARCHIVE_love"
-unpack_7z "$ARCHIVE_game"
 unpack_7z "$ARCHIVE_sfx" "$DIR_sfx"
 if [ "$SYSTEM" = "Linux" ]; then
     chmod +x "$EXE_magick"
@@ -138,23 +131,8 @@ else
 fi
 
 # Icon settings
-FILE_conf="conf.lua"
 FILE_ico="${FILE_icon%.*}.ico"
-SFX_game="$DIR_game.exe"
-
-patch_game() {
-    if [ ! -f "$DIR_game/$FILE_icon" ]; then
-        echo "Adding icon to $DIR_game"
-        cp "$FILE_icon" "$DIR_game"
-    fi
-
-    if [ ! -f "$DIR_game/$FILE_conf" ]; then
-        echo "Creating $DIR_game/$FILE_conf"
-        sed -e "s|@TITLE@|$TITLE|g" \
-            -e "s|@ICON@|$FILE_icon|g" \
-            "$FILE_conf.in" > "$DIR_game/$FILE_conf"
-    fi
-}
+SFX_game="game.exe"
 
 generate_ico() {
     if [ ! -f "$FILE_ico" ]; then
@@ -173,7 +151,7 @@ modify_sfx() {
             --set-version-string CompanyName "$AUTHOR" \
             --set-version-string ProductName "$TITLE" \
             --set-version-string FileDescription "$TITLE love2d game" \
-            --set-version-string InternalName "$DIR_game" \
+            --set-version-string InternalName "game" \
             --set-version-string LegalCopyright "$LICENSE" \
             --set-version-string OriginalFilename "$SFX_game" \
             --set-version-string PrivateBuild "$VERSION" \
@@ -183,29 +161,35 @@ modify_sfx() {
     fi
 }
 
-patch_game
 generate_ico
 modify_sfx
 
 # SFX settings
 CONFIG_file="config.txt"
-ARCHIVE_packed="$DIR_game.7z"
+ARCHIVE_packed="game.7z"
 
 pack_7z() {
     if [ ! -f "$ARCHIVE_packed" ]; then
         echo "Creating $ARCHIVE_packed"
 
+        PACK_OPTS=""
         if [ ! -z "$PASSWORD" ]; then
-            OPTS="$OPTS -p$PASSWORD"
+            PACK_OPTS="-p$PASSWORD"
         fi
 
-        "./$EXE_7z" a $OPTS "$ARCHIVE_packed" "$DIR_love" "$DIR_game"
+        # Create exclusion list if it exists
+        if [ -f "$EXCLUDE_FILE" ]; then
+            echo "Using exclusion list: $EXCLUDE_FILE"
+            "./$EXE_7z" a $PACK_OPTS -x@"$EXCLUDE_FILE" "$ARCHIVE_packed" "$DIR_love" "$DIR_game"
+        else
+            "./$EXE_7z" a $PACK_OPTS "$ARCHIVE_packed" "$DIR_love" "$DIR_game"
+        fi
     fi
 }
 
 patch_config() {
     if [ ! -f "$CONFIG_file" ]; then
-        echo "Creating "$CONFIG_file""
+        echo "Creating $CONFIG_file"
         sed -e "s|@TITLE@|$TITLE|g" \
             -e "s|@PROGRESS@|$PROGRESS|g" \
             -e "s|@LOVE@|$DIR_love|g" \
@@ -225,7 +209,9 @@ pack_7z
 patch_config
 create_sfx
 
+echo "Build complete: $SFX_game"
+
 # Clean up
-#rm -f "$EXE_7zr" "$EXE_wine" "$ARCHIVE_7z" "$ARCHIVE_love" "$ARCHIVE_game" "$ARCHIVE_sfx" "$ARCHIVE_magick" "$FILE_icon" "$FILE_rcedit"
-#rm -rf "$DIR_7z" "$DIR_love" "$DIR_game" "$DIR_sfx" "$DIR_magick"
-#rm -f "$FILE_ico" "$FILE_sfx" "$CONFIG_file" "$ARCHIVE_packed" "$SFX_game"
+#rm -f "$EXE_7zr" "$EXE_wine" "$ARCHIVE_7z" "$ARCHIVE_love" "$ARCHIVE_sfx" "$ARCHIVE_magick" "$FILE_icon" "$FILE_rcedit"
+#rm -rf "$DIR_7z" "$DIR_love" "$DIR_sfx" "$DIR_magick"
+#rm -f "$FILE_ico" "$FILE_sfx" "$CONFIG_file" "$ARCHIVE_packed"
