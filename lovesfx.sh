@@ -145,7 +145,7 @@ else
 fi
 
 # Icon settings
-FILE_ico="${FILE_icon%.*}.ico"
+FILE_ico="$CACHE_DIR/${FILE_icon%.*}.ico"
 SFX_game="game.exe"
 
 generate_ico() {
@@ -180,7 +180,7 @@ modify_sfx
 
 # SFX settings
 CONFIG_file="config.txt"
-ARCHIVE_packed="game.7z"
+ARCHIVE_packed="$CACHE_DIR/game.7z"
 EXTRACTED_love="$(basename ${ARCHIVE_love%.*})"
 
 pack_7z() {
