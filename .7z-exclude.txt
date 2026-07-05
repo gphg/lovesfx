@@ -7,8 +7,12 @@
 *.log
 *.ico
 lovesfx.*
+config.txt.in
 .git
 .vscode
 cache
 dist
 build
+love-*/*.ico
+love-*/lovec.exe
+love-*/changes.txt

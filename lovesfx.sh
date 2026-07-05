@@ -90,11 +90,12 @@ if [ "$SYSTEM" = "Linux" ]; then
 else
     EXE_7z="$DIR_7z/x64/7za.exe"
 fi
+
 DIR_game="."
 DIR_love="$CACHE_DIR/love"
-DIR_sfx="$CACHE_DIR/7zsfx"
 DIR_magick="$CACHE_DIR/imagemagick"
-FILE_sfx="$CACHE_DIR/7zsd_All_x64.sfx"
+DIR_sfx="$CACHE_DIR/7zsfx"
+FILE_sfx="7zsd_All_x64.sfx"
 
 # Setup magick and rcedit paths based on OS
 if [ "$SYSTEM" = "Linux" ]; then
@@ -158,10 +159,10 @@ generate_ico() {
 }
 
 modify_sfx() {
-    if [ ! -f "$FILE_sfx" ]; then
+    if [ ! -f "$CACHE_DIR/$FILE_sfx" ]; then
         echo "Patching $FILE_sfx"
-        cp "$DIR_sfx/$FILE_sfx" .
-        ./$EXE_rcedit "$FILE_sfx" \
+        cp "$DIR_sfx/$FILE_sfx" "$CACHE_DIR"
+        ./$EXE_rcedit "$CACHE_DIR/$FILE_sfx" \
             --set-version-string CompanyName "$AUTHOR" \
             --set-version-string ProductName "$TITLE" \
             --set-version-string FileDescription "$TITLE love2d game" \
@@ -179,48 +180,56 @@ generate_ico
 modify_sfx
 
 # SFX settings
-CONFIG_file="$CACHE_DIR/config.txt"
-ARCHIVE_packed="$CACHE_DIR/game.7z"
+CONFIG_file="config.txt"
+ARCHIVE_packed="game.7z"
 EXTRACTED_love="$(basename ${ARCHIVE_love%.*})"
 
 pack_7z() {
-    if [ ! -f "$ARCHIVE_packed" ]; then
-        echo "Creating $ARCHIVE_packed"
+    # Eearly quit of both file existed
+    [ -f "$SFX_game" ] && [ -f "$CACHE_DIR/$ARCHIVE_packed" ] && return 0
 
-        PACK_OPTS=""
-        if [ ! -z "$PASSWORD" ]; then
-            PACK_OPTS="-p$PASSWORD"
-        fi
+    rm -f "$SFX_game" "$CACHE_DIR/$ARCHIVE_packed"
+    echo "Creating $ARCHIVE_packed"
 
-        if [ ! -d "$DIR_game/$EXTRACTED_love" ]; then
-            mv -v "$DIR_love/$EXTRACTED_love" "$DIR_game"
-        fi
+    PACK_OPTS=""
+    if [ ! -z "$PASSWORD" ]; then
+        PACK_OPTS="-p$PASSWORD"
+    fi
 
-        # Create exclusion list if it exists
-        if [ -f "$EXCLUDE_FILE" ]; then
-            echo "Using exclusion list: $EXCLUDE_FILE"
-            "./$EXE_7z" a $PACK_OPTS -x@"$EXCLUDE_FILE" "$ARCHIVE_packed" "$DIR_game"
-        else
-            "./$EXE_7z" a $PACK_OPTS "$ARCHIVE_packed" "$DIR_game"
-        fi
+    if [ ! -d "$DIR_love/$EXTRACTED_love" ]; then
+        echo "ERROR: Expecting '${EXTRACTED_love}' to be in '${DIR_love}' directory."
+        exit 1
+    fi
+
+    # Using absolute path to archive only its items
+    local _dir_love_realpath=$(realpath "$DIR_love/$EXTRACTED_love")
+
+    # Create exclusion list if it exists
+    if [ -f "$EXCLUDE_FILE" ]; then
+        echo "Using exclusion list: $EXCLUDE_FILE"
+        "./$EXE_7z" a $PACK_OPTS -x@"$EXCLUDE_FILE" "$CACHE_DIR/$ARCHIVE_packed" \
+            "$DIR_game" "$_dir_love_realpath"
+    else
+        "./$EXE_7z" a $PACK_OPTS "$CACHE_DIR/$ARCHIVE_packed" \
+            "$DIR_game" "$_dir_love_realpath"
     fi
 }
 
 patch_config() {
-    if [ ! -f "$CONFIG_file" ]; then
-        echo "Creating $CONFIG_file"
-        sed -e "s|@TITLE@|$TITLE|g" \
-            -e "s|@PROGRESS@|$PROGRESS|g" \
-            -e "s|@LOVE@|$EXTRACTED_love|g" \
-            -e "s|@GAME@|$DIR_game|g" \
-            "$CONFIG_file.in" > "$CONFIG_file"
-    fi
+    [ -f "$SFX_game" ] && return 0
+
+    echo "Creating $CONFIG_file"
+    sed -e "s|@TITLE@|$TITLE|g" \
+        -e "s|@PROGRESS@|$PROGRESS|g" \
+        -e "s|@LOVE@|$EXTRACTED_love|g" \
+        -e "s|@GAME@|$DIR_game|g" \
+        "$CONFIG_file.in" > "$CACHE_DIR/$CONFIG_file"
 }
 
 create_sfx() {
     if [ ! -f "$SFX_game" ]; then
         echo "Creating $SFX_game"
-        cat "$FILE_sfx" "$CONFIG_file" "$ARCHIVE_packed" > "$SFX_game"
+        cat "$CACHE_DIR/$FILE_sfx" "$CACHE_DIR/$CONFIG_file" "$CACHE_DIR/$ARCHIVE_packed" > "$SFX_game"
     fi
 }
 

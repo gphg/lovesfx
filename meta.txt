@@ -1,10 +1,10 @@
-version=1.0.0
+version=0.0.1
 build=1001
 identity=awesomegame
-package=com.dengine.awesomegame
+package=com.love-users.awesomegame
 title=Awesome Game
 title[ja]=素晴らしいゲーム
-comment=Packaged by 2dengine.com
-publisher=2dengine LLC
-url=https://2dengine.com/
+comment=
+publisher=LOVE2D-Users
+url=https://love2d.com/
 orientation=default
