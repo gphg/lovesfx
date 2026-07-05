@@ -94,7 +94,7 @@ DIR_game="."
 DIR_love="$CACHE_DIR/love"
 DIR_sfx="$CACHE_DIR/7zsfx"
 DIR_magick="$CACHE_DIR/imagemagick"
-FILE_sfx="7zsd_All_x64.sfx"
+FILE_sfx="$CACHE_DIR/7zsd_All_x64.sfx"
 
 # Setup magick and rcedit paths based on OS
 if [ "$SYSTEM" = "Linux" ]; then
@@ -179,7 +179,7 @@ generate_ico
 modify_sfx
 
 # SFX settings
-CONFIG_file="config.txt"
+CONFIG_file="$CACHE_DIR/config.txt"
 ARCHIVE_packed="$CACHE_DIR/game.7z"
 EXTRACTED_love="$(basename ${ARCHIVE_love%.*})"
 
