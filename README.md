@@ -179,7 +179,7 @@ Ensure `meta.txt` exists in the project root with required fields.
 
 - All downloads cached in `cache/` for faster rebuilds
 - Cache is git-ignored - safe to delete and rebuild
-- Windows executable is ~55MB (includes LÖVE 11.5 runtime)
+- Windows executable is ~6MB (includes LÖVE 11.5 runtime)
 - .gitignore should include: `/cache/`, `*.exe`, `*.7z`, `*.ico`
 - Password is passed via environment variable for security (not stored in files)
 
