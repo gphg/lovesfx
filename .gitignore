@@ -6,6 +6,7 @@
 *.sfx
 *.AppImage
 /config.txt
+/icon.png
 /icon.ico
 /love-*/
 /cache/
