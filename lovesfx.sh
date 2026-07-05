@@ -10,7 +10,6 @@ fi
 
 # Parse meta.txt and set variables
 TITLE=$(grep "^title=" meta.txt | cut -d'=' -f2 | head -1)
-PROGRESS=$(grep "^progress=" meta.txt | cut -d'=' -f2)
 PASSWORD=$(grep "^password=" meta.txt | cut -d'=' -f2)
 AUTHOR=$(grep "^publisher=" meta.txt | cut -d'=' -f2)
 VERSION=$(grep "^version=" meta.txt | cut -d'=' -f2)
@@ -18,11 +17,19 @@ LICENSE=$(grep "^comment=" meta.txt | cut -d'=' -f2)
 
 # Set defaults if not found in meta.txt
 TITLE=${TITLE:-"Game"}
-PROGRESS=${PROGRESS:-"no"}
 PASSWORD=${PASSWORD:-""}
 AUTHOR=${AUTHOR:-"Unknown"}
 VERSION=${VERSION:-"1.0.0.0"}
 LICENSE=${LICENSE:-"Public Domain"}
+
+# Icon source to be processed into icon.ico
+FILE_icon="icon.png"
+
+# 7z exclusion list
+EXCLUDE_FILE=".7z-exclude.txt"
+
+# Show 7z progress bar?
+PROGRESS=${PROGRESS:-"no"}
 
 # Detect OS
 SYSTEM="$(uname -s)"
@@ -60,10 +67,8 @@ EXE_wine="$CACHE_DIR/$(basename "$LINK_wine")"
 ARCHIVE_7z="$CACHE_DIR/$(basename "$LINK_7z")"
 ARCHIVE_love="$CACHE_DIR/$(basename "$LINK_love")"
 ARCHIVE_sfx="$CACHE_DIR/$(basename "$LINK_sfx")"
-FILE_icon="icon.png"
 ARCHIVE_magick="$CACHE_DIR/$(basename "$LINK_magick")"
 FILE_rcedit="$CACHE_DIR/$(basename "$LINK_rcedit")"
-EXCLUDE_FILE="exclude.txt"
 
 if [ "$SYSTEM" != "Linux" ]; then
     download "$LINK_7zr" "$EXE_7zr"
@@ -84,8 +89,8 @@ if [ "$SYSTEM" = "Linux" ]; then
 else
     EXE_7z="$DIR_7z/x64/7za.exe"
 fi
-DIR_love="$CACHE_DIR/love"
 DIR_game="."
+DIR_love="$CACHE_DIR/love"
 DIR_sfx="$CACHE_DIR/7zsfx"
 DIR_magick="$CACHE_DIR/imagemagick"
 FILE_sfx="7zsd_All_x64.sfx"
@@ -175,6 +180,7 @@ modify_sfx
 # SFX settings
 CONFIG_file="config.txt"
 ARCHIVE_packed="game.7z"
+EXTRACTED_love="$(basename ${ARCHIVE_love%.*})"
 
 pack_7z() {
     if [ ! -f "$ARCHIVE_packed" ]; then
@@ -185,12 +191,16 @@ pack_7z() {
             PACK_OPTS="-p$PASSWORD"
         fi
 
+        if [ ! -d "$DIR_game/$EXTRACTED_love" ]; then
+            mv -v "$DIR_love/$EXTRACTED_love" "$DIR_game"
+        fi
+
         # Create exclusion list if it exists
         if [ -f "$EXCLUDE_FILE" ]; then
             echo "Using exclusion list: $EXCLUDE_FILE"
-            "./$EXE_7z" a $PACK_OPTS -x@"$EXCLUDE_FILE" "$ARCHIVE_packed" "$DIR_love" "$DIR_game"
+            "./$EXE_7z" a $PACK_OPTS -x@"$EXCLUDE_FILE" "$ARCHIVE_packed" "$DIR_game"
         else
-            "./$EXE_7z" a $PACK_OPTS "$ARCHIVE_packed" "$DIR_love" "$DIR_game"
+            "./$EXE_7z" a $PACK_OPTS "$ARCHIVE_packed" "$DIR_game"
         fi
     fi
 }
@@ -200,7 +210,7 @@ patch_config() {
         echo "Creating $CONFIG_file"
         sed -e "s|@TITLE@|$TITLE|g" \
             -e "s|@PROGRESS@|$PROGRESS|g" \
-            -e "s|@LOVE@|$DIR_love|g" \
+            -e "s|@LOVE@|$EXTRACTED_love|g" \
             -e "s|@GAME@|$DIR_game|g" \
             "$CONFIG_file.in" > "$CONFIG_file"
     fi
