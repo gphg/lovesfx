@@ -1,0 +1,14 @@
+.7z-*.txt
+*.love
+*.zip
+*.exe
+*.7z
+*.sfx
+*.log
+*.ico
+lovesfx.*
+.git
+.vscode
+cache
+dist
+build
