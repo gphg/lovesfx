@@ -10,17 +10,18 @@ fi
 
 # Parse meta.txt and set variables
 TITLE=$(grep "^title=" meta.txt | cut -d'=' -f2 | head -1)
-PASSWORD=$(grep "^password=" meta.txt | cut -d'=' -f2)
 AUTHOR=$(grep "^publisher=" meta.txt | cut -d'=' -f2)
 VERSION=$(grep "^version=" meta.txt | cut -d'=' -f2)
 LICENSE=$(grep "^comment=" meta.txt | cut -d'=' -f2)
 
 # Set defaults if not found in meta.txt
 TITLE=${TITLE:-"Game"}
-PASSWORD=${PASSWORD:-""}
 AUTHOR=${AUTHOR:-"Unknown"}
 VERSION=${VERSION:-"1.0.0.0"}
 LICENSE=${LICENSE:-"Public Domain"}
+
+# Password from environment variable (not from meta.txt)
+PASSWORD=${PASSWORD:-""}
 
 # Icon source to be processed into icon.ico
 FILE_icon="icon.png"
