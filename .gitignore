@@ -5,7 +5,7 @@
 *.exe
 *.sfx
 *.AppImage
-config.txt
-magick
-icon.png
-icon.ico
+/config.txt
+/icon.ico
+/love-*/
+/cache/
