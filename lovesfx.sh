@@ -15,13 +15,13 @@ SYSTEM="$(uname -s)"
 
 # Download links
 if [ "$SYSTEM" = "Linux" ]; then
-    LINK_7z="https://7-zip.org/a/7z2407-linux-x64.tar.xz"
-    LINK_magick="https://imagemagick.org/archive/binaries/magick"
-    LINK_wine="https://github.com/mmtrt/WINE_AppImage/releases/download/staging-v8/wine-staging_8.21-x86_64.AppImage"
+    LINK_7z="https://github.com/ip7z/7zip/releases/download/26.02/7z2602-linux-x64.tar.xz"
+    LINK_magick="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-26/ImageMagick-7.1.2-26-gcc-x86_64.AppImage"
+    LINK_wine="https://github.com/mmtrt/WINE_AppImage/releases/download/continuous-stable/wine-stable_11.0-x86_64.AppImage"
 else
-    LINK_7zr="https://7-zip.org/a/7zr.exe"
-    LINK_7z="https://7-zip.org/a/7z2407-extra.7z"
-    LINK_magick="https://imagemagick.org/archive/binaries/ImageMagick-7.1.1-35-portable-Q16-HDRI-x64.zip"
+    LINK_7zr="https://github.com/ip7z/7zip/releases/download/26.02/7zr.exe"
+    LINK_7z="https://github.com/ip7z/7zip/releases/download/26.02/7z2602-extra.7z"
+    LINK_magick="https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-26/ImageMagick-7.1.2-26-portable-Q16-HDRI-x64.7z"
 fi
 
 LINK_love="https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip"
